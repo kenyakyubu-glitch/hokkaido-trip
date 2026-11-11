@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
 <title>北海道 男三人旅</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,6 +73,23 @@ button,input,select{font:inherit; color:inherit}
 .tl .what{font-weight:700}
 .tl .where{font-size:14px; color:var(--mute)}
 .tl .note{font-size:14px; margin-top:2px}
+.map{
+  display:inline-flex; align-items:center; gap:4px; margin-top:4px; padding:3px 10px 3px 8px; min-height:30px;
+  border:1.5px solid var(--sign); border-radius:15px; color:var(--sign); font-size:13px; font-weight:700; text-decoration:none;
+}
+.status{margin:-8px 0 14px; font-size:13px; color:var(--sign); font-weight:700}
+.status.warn{color:var(--ink); background:var(--caution); padding:4px 10px; border-radius:6px; font-weight:500}
+input[type=password]{width:100%; border:2px solid var(--line); background:var(--snow); border-radius:7px; padding:8px 10px; min-height:44px}
+.ops-line{display:flex; gap:8px; margin-top:6px}
+.ops-line button{border:1.5px solid var(--line); background:var(--paper); border-radius:6px; padding:2px 12px; min-height:34px; font-size:14px; cursor:pointer}
+#editTools .btn{margin-top:4px}
+dialog{border:0; border-radius:12px; padding:18px 16px; width:min(92vw,420px); background:var(--paper); color:var(--ink)}
+dialog::backdrop{background:rgba(10,20,24,.5)}
+dialog h2{margin:0 0 10px; font-size:18px}
+dialog label{display:block; font-size:13px; color:var(--mute); margin-top:8px}
+dialog label input, dialog label select{margin-top:3px; color:var(--ink)}
+dialog .row2 .btn{margin-top:14px}
+.map::before{content:""; width:8px; height:8px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); background:var(--sign)}
 .flag{
   display:inline-block; margin-left:6px; padding:0 7px; border-radius:4px; font-size:12px; font-weight:700;
   background:var(--caution); color:#16262B; vertical-align:2px;
@@ -87,7 +105,12 @@ section[hidden]{display:none}
 .check:first-of-type{border-top:0}
 .check input{width:22px; height:22px; margin:1px 0 0; accent-color:var(--sign); flex:none}
 .check small{display:block; color:var(--mute); font-size:13px}
-.check input:checked + span{color:var(--mute); text-decoration:line-through}
+.check label{flex:1; cursor:pointer}
+.check input:checked + label{color:var(--mute); text-decoration:line-through}
+.check .ops{display:flex; gap:2px; flex:none}
+.check .ops button{border:0; background:none; color:var(--mute); font-size:13px; padding:2px 6px; min-height:32px; cursor:pointer}
+.addrow{display:flex; gap:8px; margin-top:10px}
+.addrow button{flex:none; border:0; border-radius:7px; background:var(--sign); color:#fff; font-weight:700; padding:0 16px; min-height:44px; cursor:pointer}
 
 /* 精算 */
 .members{display:grid; grid-template-columns:repeat(3,1fr); gap:6px}
@@ -146,17 +169,47 @@ nav.tabs button[aria-selected="true"]{color:var(--sign); border-top-color:var(--
     </div>
   </header>
 
+  <p class="status" id="status" role="status" hidden></p>
+
+  <dialog id="gate" aria-labelledby="gateTitle">
+    <form id="gateForm">
+      <h2 id="gateTitle">合言葉を入れてください</h2>
+      <p class="help">LINE で共有された合言葉です。一度入れると、このスマホが覚えます。</p>
+      <label>合言葉<input type="password" id="gatePass" autocomplete="off"></label>
+      <p class="help" id="gateMsg" style="color:#B3261E"></p>
+      <button class="btn">開く</button>
+    </form>
+  </dialog>
+
   <section id="tab-plan" aria-label="行程">
     <div class="days" id="days"></div>
     <p class="theme" id="theme"></p>
     <p class="theme-sub" id="themeSub"></p>
     <ol class="tl" id="timeline"></ol>
+    <div id="editTools" hidden>
+      <button class="btn" id="addPlan">この日に予定を追加</button>
+      <button class="btn ghost" id="resetPlan">最初の行程に戻す</button>
+      <p class="help" style="margin-top:8px">直した行程はこのスマホにだけ残ります。</p>
+    </div>
+    <button class="btn ghost" id="editToggle">行程を編集する</button>
   </section>
+
+  <dialog id="dlg" aria-labelledby="dlgTitle">
+    <form id="dlgForm">
+      <h2 id="dlgTitle">予定を追加</h2>
+      <label>時間<input type="text" id="fT" inputmode="numeric" placeholder="例: 12:30"></label>
+      <label>予定<input type="text" id="fWhat" placeholder="例: 味噌ラーメン"></label>
+      <label>場所（地図で検索する言葉）<input type="text" id="fWhere" placeholder="例: すみれ 札幌すすきの店"></label>
+      <label>メモ<input type="text" id="fNote" placeholder="なくてもOK"></label>
+      <label>印<select id="fFlag"><option value="">なし</option><option>確認</option><option>予約</option><option>相談</option></select></label>
+      <div class="row2"><button type="button" class="btn ghost" id="dlgCancel">やめる</button><button class="btn">保存する</button></div>
+    </form>
+  </dialog>
 
   <section id="tab-prep" aria-label="準備" hidden>
     <div class="block">
       <h2>予約・確認</h2>
-      <p class="help">済んだらチェック。チェックはこのスマホにだけ残ります。</p>
+      <p class="help">済んだらチェック。追加・直す・消すもできます。変更はこのスマホにだけ残ります。</p>
       <div id="resv"></div>
     </div>
     <div class="block">
@@ -238,6 +291,39 @@ const DAYS = [
     ["20:20","新千歳空港を出発","新千歳空港","便名を書いておく"]
   ]}
 ];
+/* 予定ごとの Google マップの検索語 */
+const HOTEL = "ドーミーインPREMIUM札幌";
+const MAP = {
+  "新千歳空港に到着":"新千歳空港",
+  "レンタカーを受け取る":"ニコニコレンタカー 新千歳空港",
+  "二条市場で海鮮ランチ":"二条市場 札幌",
+  "サッポロビール博物館":"サッポロビール博物館",
+  "ホテルにチェックイン":HOTEL,
+  "大浴場とサウナ":HOTEL,
+  "夕食":"すすきの 札幌",
+  "すすきので飲み歩き":"すすきの 札幌",
+  "夜鳴きそばと再入浴":HOTEL,
+  "ホテルの朝食（海鮮丼）":HOTEL,
+  "札幌を出発":HOTEL,
+  "小樽運河":"小樽運河",
+  "堺町通りで食べ歩き":"堺町通り 小樽",
+  "寿司・海鮮ランチ":"小樽 寿司",
+  "ニッカウヰスキー余市蒸溜所":"ニッカウヰスキー余市蒸溜所",
+  "ホテルでサウナ・休憩":HOTEL,
+  "ジンギスカン、すすきの":"すすきの ジンギスカン",
+  "ホテルの朝食":HOTEL,
+  "朝風呂と荷造り":HOTEL,
+  "チェックアウト":HOTEL,
+  "定山渓方面へドライブ":"定山渓温泉",
+  "豊平峡温泉、カレーとナン":"豊平峡温泉",
+  "定山渓を散策":"定山渓温泉",
+  "新千歳空港へ":"新千歳空港",
+  "レンタカーを返す":"ニコニコレンタカー 新千歳空港",
+  "空港で夕食とお土産":"新千歳空港",
+  "新千歳空港を出発":"新千歳空港"
+};
+const mapUrl = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
+
 const RESV = [
   ["hotel","ホテル 2泊","朝食付きか、予約番号"],
   ["car","レンタカー","スタッドレスタイヤか"],
@@ -260,7 +346,94 @@ const KEY = "hokkaido-trip-2026";
 let state = {checks:{}, members:["Aさん","Bさん","Cさん"], exps:[]};
 try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s) state = Object.assign(state, s); }catch(e){}
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+state.exps.forEach((e,i) => { if(!e.id) e.id = "e" + Date.now() + i; });
 const $ = id => document.getElementById(id);
+
+/* 3人で共有する仕組み
+   API に Google Apps Script のウェブアプリの URL を入れると共有モードになる。空のままならこのスマホだけで動く。
+   合言葉はコードに書かず、最初に開いたときに入力してもらい、このスマホに覚えさせる。 */
+const API = "https://script.google.com/macros/s/AKfycbwIOcNpkfWtCMNl01LCgTV-Tc4ecbG3iSXjN9C6hq5NlOTU_L-1VdpG-TqYMO7XSiIr/exec";
+let pass = "", queue = [], syncing = false, again = false, pendingRefresh = false;
+try{ pass = localStorage.getItem(KEY + "-pass") || ""; }catch(e){}
+try{ queue = JSON.parse(localStorage.getItem(KEY + "-q")) || []; }catch(e){}
+function saveQ(){ try{ localStorage.setItem(KEY + "-q", JSON.stringify(queue)); }catch(e){} }
+
+function commit(op){
+  save();
+  if(!API) return;
+  queue.push(JSON.parse(JSON.stringify(op))); saveQ(); sync();
+}
+function applyLocal(op){
+  switch(op.type){
+    case "setPlan": state.plan = op.value; break;
+    case "setLists": state.lists = op.value; break;
+    case "setMembers": state.members = op.value; break;
+    case "check": state.checks[op.k] = !!op.v; break;
+    case "addExp": if(!state.exps.some(x => x.id === op.exp.id)) state.exps.push(op.exp); break;
+    case "delExp": state.exps = state.exps.filter(x => x.id !== op.id); break;
+  }
+}
+function setStatus(msg, warn){
+  const el = $("status"); el.hidden = false; el.textContent = msg; el.classList.toggle("warn", !!warn);
+}
+function hhmm(iso){ if(!iso) return ""; const d = new Date(iso); return d.getHours() + ":" + String(d.getMinutes()).padStart(2,"0"); }
+
+async function sync(){
+  if(!API || !pass) return;
+  if(syncing){ again = true; return; }
+  syncing = true;
+  const ops = queue.slice();
+  try{
+    const res = await fetch(API, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({pass, ops})});
+    const data = await res.json();
+    if(!data.ok){
+      if(data.error === "wrong_pass"){
+        pass = ""; try{ localStorage.removeItem(KEY + "-pass"); }catch(e){}
+        showGate("合言葉が違います。もう一度入れてください。");
+      }else setStatus("共有できませんでした（" + data.error + "）", true);
+      return;
+    }
+    queue.splice(0, ops.length); saveQ();
+    const s = data.state || {};
+    if(s.plan == null || s.lists == null || s.members == null){
+      // 共有データがまだ空なら、このスマホの内容を最初のデータとして送る
+      queue.unshift({type:"init", value:{plan:state.plan, lists:state.lists, members:state.members, checks:state.checks, exps:state.exps}});
+      saveQ(); again = true;
+    }else{
+      state.plan = s.plan; state.lists = s.lists; state.members = s.members;
+      state.checks = s.checks || {}; state.exps = s.exps || [];
+      queue.forEach(applyLocal); save(); refresh();
+      setStatus("3人で共有中・" + hhmm(s.updatedAt) + " 更新");
+    }
+  }catch(e){
+    setStatus("電波がないので、このスマホに保存中。つながったら自動で送ります。", true);
+  }finally{
+    syncing = false;
+    if(again){ again = false; sync(); }
+  }
+}
+function busy(){
+  const a = document.activeElement;
+  return $("dlg").open || $("gate").open || (a && (a.tagName === "INPUT" || a.tagName === "SELECT") && a.type !== "checkbox");
+}
+function refresh(){
+  if(busy()){ pendingRefresh = true; return; }
+  pendingRefresh = false;
+  renderPlan(); renderChecks($("resv"), "resv"); renderChecks($("items"), "items"); renderMembers(); renderMoney();
+}
+document.addEventListener("focusout", () => setTimeout(() => { if(pendingRefresh) refresh(); }, 0));
+function showGate(msg){
+  $("gateMsg").textContent = msg || "";
+  if(!$("gate").open) $("gate").showModal();
+  $("gatePass").focus();
+}
+$("gateForm").onsubmit = e => {
+  e.preventDefault();
+  const v = $("gatePass").value.trim(); if(!v) return;
+  pass = v; try{ localStorage.setItem(KEY + "-pass", v); }catch(e){}
+  $("gate").close(); $("gatePass").value = ""; setStatus("共有データを読み込み中…"); sync();
+};
+$("gate").addEventListener("cancel", e => e.preventDefault());
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const yen = n => Math.round(n).toLocaleString("ja-JP") + "円";
 
@@ -283,38 +456,107 @@ function renderDays(){
     `<button aria-pressed="${i===current}" data-i="${i}"><span class="num">${d.d}</span><span>${d.w}曜</span></button>`).join("");
   $("days").querySelectorAll("button").forEach(b => b.onclick = () => { current = +b.dataset.i; renderDays(); renderPlan(); });
 }
-function nowIndex(day){
-  if(day.date !== today) return -1;
+/* 行程（このスマホで追加・直す・消すができる） */
+const defaultPlan = () => DAYS.map(d => d.plan.map(([t,what,where="",note="",flag=""]) => ({t, what, where, note, flag, map: MAP[what] || ""})));
+if(!state.plan) state.plan = defaultPlan();
+const toMin = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ""); return m ? (+m[1])*60 + (+m[2]) : 9999; };
+let editing = false, editAt = null;
+
+function nowIndex(i){
+  if(DAYS[i].date !== today) return -1;
   const n = new Date(), mins = n.getHours()*60 + n.getMinutes();
   let idx = -1;
-  day.plan.forEach((p,i) => { const [h,m] = p[0].split(":").map(Number); if(h*60+m <= mins) idx = i; });
+  state.plan[i].forEach((p,j) => { if(toMin(p.t) <= mins) idx = j; });
   return idx;
 }
 function renderPlan(){
-  const day = DAYS[current], ni = nowIndex(day);
+  const day = DAYS[current], list = state.plan[current], ni = editing ? -1 : nowIndex(current);
   $("theme").textContent = day.theme;
   $("themeSub").textContent = day.sub;
-  $("timeline").innerHTML = day.plan.map((p,i) => {
-    const [t, what, where, note, flag] = p;
-    return `<li class="${i===ni?"now":""}"><span class="t num">${t}</span>
-      <div class="what">${esc(what)}${flag?`<span class="flag">${flag}</span>`:""}</div>
-      ${where?`<div class="where">${esc(where)}</div>`:""}
-      ${note?`<div class="note">${esc(note)}</div>`:""}</li>`;
-  }).join("");
+  $("timeline").innerHTML = list.map((p,i) => {
+    const q = p.map || p.where;
+    return `<li class="${i===ni?"now":""}"><span class="t num">${esc(p.t)}</span>
+      <div class="what">${esc(p.what)}${p.flag?`<span class="flag">${esc(p.flag)}</span>`:""}</div>
+      ${p.where?`<div class="where">${esc(p.where)}</div>`:""}
+      ${p.note?`<div class="note">${esc(p.note)}</div>`:""}
+      ${q && !editing?`<a class="map" href="${mapUrl(q)}" target="_blank" rel="noopener">地図を開く</a>`:""}
+      ${editing?`<div class="ops-line"><button data-act="edit" data-i="${i}">直す</button><button data-act="del" data-i="${i}">消す</button></div>`:""}</li>`;
+  }).join("") || `<li><p class="empty">この日の予定はまだありません。</p></li>`;
+  $("editTools").hidden = !editing;
+  $("editToggle").textContent = editing ? "編集を終える" : "行程を編集する";
+  $("timeline").querySelectorAll("button[data-act]").forEach(b => b.onclick = () => {
+    const i = +b.dataset.i;
+    if(b.dataset.act === "del"){
+      if(!confirm(`「${list[i].what}」を消しますか？`)) return;
+      list.splice(i,1); commit({type:"setPlan", value:state.plan}); renderPlan();
+    }else openDialog(i);
+  });
 }
+function openDialog(i){
+  editAt = i;
+  const p = i === null ? {t:"", what:"", where:"", note:"", flag:""} : state.plan[current][i];
+  $("dlgTitle").textContent = (i === null ? "予定を追加" : "予定を直す") + `（${DAYS[current].d}日）`;
+  $("fT").value = p.t; $("fWhat").value = p.what; $("fWhere").value = p.where; $("fNote").value = p.note; $("fFlag").value = p.flag || "";
+  $("dlg").showModal();
+}
+$("dlgForm").onsubmit = e => {
+  e.preventDefault();
+  const what = $("fWhat").value.trim();
+  if(!what){ toast("予定の名前を入れてください"); return; }
+  const list = state.plan[current], old = editAt === null ? null : list[editAt];
+  const where = $("fWhere").value.trim();
+  const item = {t:$("fT").value.trim(), what, where, note:$("fNote").value.trim(), flag:$("fFlag").value,
+    map: old && old.where === where ? old.map : ""};
+  if(old) list[editAt] = item; else list.push(item);
+  list.sort((a,b) => toMin(a.t) - toMin(b.t));
+  commit({type:"setPlan", value:state.plan}); $("dlg").close(); renderPlan(); toast(old ? "直しました" : "追加しました");
+};
+$("dlgCancel").onclick = () => $("dlg").close();
+$("editToggle").onclick = () => { editing = !editing; renderPlan(); };
+$("addPlan").onclick = () => openDialog(null);
+$("resetPlan").onclick = () => {
+  if(!confirm("行程を最初の内容に戻しますか？ このスマホで直した分は消えます。")) return;
+  state.plan = defaultPlan(); commit({type:"setPlan", value:state.plan}); renderPlan(); toast("最初の行程に戻しました");
+};
 
-/* 準備 */
-function renderChecks(el, list){
-  el.innerHTML = list.map(([k,label,sub]) =>
-    `<label class="check"><input type="checkbox" data-k="${k}" ${state.checks[k]?"checked":""}><span>${esc(label)}${sub?`<small>${esc(sub)}</small>`:""}</span></label>`).join("");
-  el.querySelectorAll("input").forEach(c => c.onchange = () => { state.checks[c.dataset.k] = c.checked; save(); });
+/* 準備（項目の追加・編集・削除ができる） */
+if(!state.lists) state.lists = {
+  resv: RESV.map(([k,label,sub]) => ({k,label,sub})),
+  items: ITEMS.map(([k,label,sub]) => ({k,label,sub}))
+};
+function renderChecks(el, key){
+  const list = state.lists[key];
+  el.innerHTML = list.map((it,i) =>
+    `<div class="check"><input type="checkbox" id="c-${it.k}" data-k="${it.k}" ${state.checks[it.k]?"checked":""}>
+      <label for="c-${it.k}">${esc(it.label)}${it.sub?`<small>${esc(it.sub)}</small>`:""}</label>
+      <span class="ops"><button data-act="edit" data-i="${i}" aria-label="${esc(it.label)}を直す">直す</button><button data-act="del" data-i="${i}" aria-label="${esc(it.label)}を消す">消す</button></span></div>`).join("")
+    + `<form class="addrow" data-key="${key}"><input type="text" placeholder="${key==="items"?"持ち物を追加（例: 傘）":"確認することを追加"}" aria-label="追加する項目"><button>追加</button></form>`;
+  el.querySelectorAll("input[type=checkbox]").forEach(c => c.onchange = () => { state.checks[c.dataset.k] = c.checked; commit({type:"check", k:c.dataset.k, v:c.checked}); });
+  el.querySelectorAll("button[data-act]").forEach(b => b.onclick = () => {
+    const it = list[+b.dataset.i];
+    if(b.dataset.act === "del"){
+      if(!confirm(`「${it.label}」を消しますか？`)) return;
+      list.splice(+b.dataset.i, 1); delete state.checks[it.k];
+    }else{
+      const label = prompt("項目の名前", it.label); if(label === null || !label.trim()) return;
+      const sub = prompt("メモ（担当など。なくてもOK）", it.sub || "");
+      it.label = label.trim(); it.sub = (sub || "").trim();
+    }
+    commit({type:"setLists", value:state.lists}); renderChecks(el, key);
+  });
+  el.querySelector("form").onsubmit = e => {
+    e.preventDefault();
+    const inp = e.target.querySelector("input"), label = inp.value.trim();
+    if(!label) return;
+    list.push({k:"u"+Date.now(), label, sub:""}); commit({type:"setLists", value:state.lists}); renderChecks(el, key); toast("追加しました");
+  };
 }
 
 /* 精算 */
 function renderMembers(){
   $("members").innerHTML = state.members.map((m,i) => `<input type="text" value="${esc(m)}" data-i="${i}" aria-label="メンバー${i+1}の名前">`).join("");
   $("members").querySelectorAll("input").forEach(inp => inp.onchange = () => {
-    state.members[+inp.dataset.i] = inp.value.trim() || ("メンバー" + (+inp.dataset.i + 1)); save(); renderMoney();
+    state.members[+inp.dataset.i] = inp.value.trim() || ("メンバー" + (+inp.dataset.i + 1)); commit({type:"setMembers", value:state.members}); renderMoney();
   });
 }
 function renderForm(){
@@ -347,11 +589,13 @@ function renderMoney(){
   $("sum").textContent = yen(total);
   $("expList").innerHTML = state.exps.length ? state.exps.map((e,i) =>
     `<div class="exp"><div>${esc(e.item)}<small>${esc(state.members[e.payer])}が払った・${e.split.length===state.members.length?"全員で割る":e.split.map(j=>esc(state.members[j])).join("、")+"で割る"}</small></div>
-     <div style="display:flex;align-items:center"><span class="amt num">${yen(e.amt)}</span><button data-i="${i}" aria-label="${esc(e.item)}を取り消す">取消</button></div></div>`).reverse().join("")
+     <div style="display:flex;align-items:center"><span class="amt num">${yen(e.amt)}</span><button data-id="${esc(e.id)}" aria-label="${esc(e.item)}を取り消す">取消</button></div></div>`).reverse().join("")
     : `<p class="empty">まだありません。払ったらすぐ上で追加しておくと、最後に揉めません。</p>`;
   $("expList").querySelectorAll("button").forEach(b => b.onclick = () => {
-    const i = +b.dataset.i;
-    if(confirm(`「${state.exps[i].item}」を取り消しますか？`)){ state.exps.splice(i,1); save(); renderMoney(); }
+    const e = state.exps.find(x => x.id === b.dataset.id); if(!e) return;
+    if(confirm(`「${e.item}」を取り消しますか？`)){
+      state.exps = state.exps.filter(x => x.id !== e.id); commit({type:"delExp", id:e.id}); renderMoney();
+    }
   });
   const s = settle();
   $("settle").innerHTML = s.length ? s.map(([from,to,x]) =>
@@ -363,8 +607,9 @@ $("eAdd").onclick = () => {
   const split = [...$("eSplit").querySelectorAll("input:checked")].map(c => +c.value);
   if(!item || !(amt > 0)){ toast("項目と金額を入れてください"); return; }
   if(!split.length){ toast("割る人を1人以上選んでください"); return; }
-  state.exps.push({item, amt, payer:+$("ePayer").value, split});
-  save(); $("eItem").value = ""; $("eAmt").value = ""; renderMoney(); toast("追加しました");
+  const exp = {id:"e" + Date.now() + Math.random().toString(36).slice(2,6), item, amt, payer:+$("ePayer").value, split};
+  state.exps.push(exp);
+  commit({type:"addExp", exp}); $("eItem").value = ""; $("eAmt").value = ""; renderMoney(); toast("追加しました");
 };
 $("copy").onclick = async () => {
   const lines = ["【北海道旅行の精算】", ...state.exps.map(e => `・${e.item} ${yen(e.amt)}（${state.members[e.payer]}）`), "合計 " + yen(state.exps.reduce((s,e)=>s+e.amt,0)), "", "▼支払い"];
@@ -384,8 +629,15 @@ document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => {
 });
 
 countdown(); renderDays(); renderPlan();
-renderChecks($("resv"), RESV); renderChecks($("items"), ITEMS);
+renderChecks($("resv"), "resv"); renderChecks($("items"), "items");
 renderMembers(); renderMoney();
+$("dlg").addEventListener("close", () => { if(pendingRefresh) refresh(); });
+if(API){
+  if(pass){ setStatus("共有データを読み込み中…"); sync(); } else showGate();
+  setInterval(() => { if(document.visibilityState === "visible") sync(); }, 15000);
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") sync(); });
+  window.addEventListener("online", sync);
+}
 </script>
 </body>
 </html>
